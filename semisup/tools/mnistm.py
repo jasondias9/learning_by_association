@@ -37,4 +37,3 @@ def load_mnistm(fileroot, partition):
                          'Use "train" or "test".')
 
     return images, labels
-
