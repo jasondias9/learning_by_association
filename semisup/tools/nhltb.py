@@ -2,11 +2,13 @@ import os
 import sys
 from . import data_dirs
 import cv2
+import numpy as np
+from tensorflow import convert_to_tensor
 
 DATADIR = data_dirs.nhltb
 
 NUM_LABELS = 1
-IMAGE_SHAPE = [28, 28, 3]
+IMAGE_SHAPE = [720, 1280, 3]
 
 #return a tuple of images and lables
 def get_data(name):
@@ -24,6 +26,7 @@ def load_data(root, partition):
     for lab in dirs:
         curr = DATADIR + lab
         for f in os.listdir(curr):
-            X.append(cv2.imread(curr+'/'+f).flatten())
+            imgdata = np.asarray(cv2.imread(curr+'/'+f))
+            X.append(imgdata)
             Y.append(lab)
     return X, Y

@@ -188,6 +188,9 @@ def stl10_model(inputs,
                             net, emb_size, activation_fn=None, scope='fc1')
     return emb
 
+def nhltb_model():
+    #TODO COMPLETE
+    return []
 
 def mnist_model(inputs,
                 is_training=True,

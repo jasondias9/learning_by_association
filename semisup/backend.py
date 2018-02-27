@@ -24,7 +24,7 @@ import numpy as np
 
 import tensorflow as tf
 import tensorflow.contrib.slim as slim
-
+from tensorflow import train
 
 def create_input(input_images, input_labels, batch_size):
   """Create preloaded data batch inputs.
@@ -122,7 +122,7 @@ class SemisupModel(object):
     """
 
     self.num_labels = num_labels
-    self.step = slim.get_or_create_global_step()
+    self.step = train.get_or_create_global_step()
     self.ema = tf.train.ExponentialMovingAverage(0.99, self.step)
 
     self.test_batch_size = 100
@@ -175,7 +175,7 @@ class SemisupModel(object):
     p_aba = tf.matmul(p_ab, p_ba, name='p_aba')
 
     self.create_walk_statistics(p_aba, equality_matrix)
-    
+
     loss_aba = tf.losses.softmax_cross_entropy(
         p_target,
         tf.log(1e-8 + p_aba),
