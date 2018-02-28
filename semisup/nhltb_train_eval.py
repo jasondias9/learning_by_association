@@ -35,16 +35,16 @@ from tensorflow.python.platform import flags
 
 FLAGS = flags.FLAGS
 
-flags.DEFINE_integer('sup_per_class', 1,
+flags.DEFINE_integer('sup_per_class', -1,
                      'Number of labeled samples used per class.')
 
 flags.DEFINE_integer('sup_seed', -1,
                      'Integer random seed used for labeled set selection.')
 
-flags.DEFINE_integer('sup_per_batch', 4,
+flags.DEFINE_integer('sup_per_batch', 3,
                      'Number of labeled samples per class per batch.')
 
-flags.DEFINE_integer('unsup_batch_size', 0,
+flags.DEFINE_integer('unsup_batch_size', 1,
                      'Number of unlabeled samples per batch.')
 
 flags.DEFINE_integer('eval_interval', 500,
@@ -71,31 +71,32 @@ IMAGE_SHAPE = nl.IMAGE_SHAPE
 
 def main(_):
   train_images, train_labels = nl.get_data('train')
+
+
   # test_images, test_labels = mnist_tools.get_data('test')
 
   # Sample labeled training subset.
   seed = FLAGS.sup_seed if FLAGS.sup_seed != -1 else None
-
 
   sup_by_label = semisup.sample_by_label(train_images, train_labels,
                                          FLAGS.sup_per_class, NUM_LABELS, seed)
 
   graph = tf.Graph()
   with graph.as_default():
-    #specify model - i.e. write the neural network nodes. 
     model = semisup.SemisupModel(semisup.architectures.nhltb_model, NUM_LABELS,
                                  IMAGE_SHAPE)
 
-
-
     # Set up inputs.
-    t_unsup_images, _ = semisup.create_input(np.array(train_images), train_labels,
+    t_unsup_images, _ = semisup.create_input(train_images, train_labels,
                                              FLAGS.unsup_batch_size)
+
+
     t_sup_images, t_sup_labels = semisup.create_per_class_inputs(
         sup_by_label, FLAGS.sup_per_batch)
 
 
     # Compute embeddings and logits.
+
     t_sup_emb = model.image_to_embedding(t_sup_images)
     t_unsup_emb = model.image_to_embedding(t_unsup_images)
     t_sup_logit = model.embedding_to_logit(t_sup_emb)

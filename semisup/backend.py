@@ -38,6 +38,7 @@ def create_input(input_images, input_labels, batch_size):
     A list containing the images and labels batches.
   """
   if input_labels is not None:
+
     image, label = tf.train.slice_input_producer([input_images, input_labels])
     return tf.train.batch([image, label], batch_size=batch_size)
   else:
@@ -69,7 +70,7 @@ def create_per_class_inputs(image_by_class, n_per_class, class_labels=None):
     batch_labels.append(labels)
   return tf.concat(batch_images, 0), tf.concat(batch_labels, 0)
 
-
+import sys
 def sample_by_label(images, labels, n_per_label, num_labels, seed=None):
   """Extract equal number of sampels per class."""
   res = []
@@ -80,6 +81,7 @@ def sample_by_label(images, labels, n_per_label, num_labels, seed=None):
       res.append(a)
     else:  # use randomly chosen subset
       res.append(a[rng.choice(len(a), n_per_label, False)])
+
   return res
 
 

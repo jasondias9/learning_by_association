@@ -19,14 +19,17 @@ def get_data(name):
 
 
 def load_data(root, partition):
-    X = []
-    Y = []
     print('[INFO]   Reading files...')
     dirs = next(os.walk(DATADIR))[1]
+    X = []
+    Y = []
     for lab in dirs:
         curr = DATADIR + lab
         for f in os.listdir(curr):
-            imgdata = np.asarray(cv2.imread(curr+'/'+f))
-            X.append(imgdata)
-            Y.append(lab)
+            if f.endswith('.jpeg'):
+                imgdata = np.asarray(cv2.imread(curr+'/'+f))
+                X.append(imgdata)
+                Y.append(int(lab))
+    X = np.array(X)
+    Y = np.array(Y)
     return X, Y
