@@ -1,25 +1,5 @@
 #! /usr/bin/env python
-"""
-Copyright 2016 Google Inc.
 
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-
-Association-based semi-supervised training example in MNIST dataset.
-
-Training should reach ~1% error rate on the test set using 100 labeled samples
-in 5000-10000 steps (a few minutes on Titan X GPU)
-
-"""
 
 from __future__ import absolute_import
 from __future__ import division
@@ -35,22 +15,22 @@ from tensorflow.python.platform import flags
 
 FLAGS = flags.FLAGS
 
-flags.DEFINE_integer('sup_per_class', -1,
+flags.DEFINE_integer('sup_per_class', 31,
                      'Number of labeled samples used per class.')
 
-flags.DEFINE_integer('sup_seed', -1,
+flags.DEFINE_integer('sup_seed', 1,
                      'Integer random seed used for labeled set selection.')
 
-flags.DEFINE_integer('sup_per_batch', 3,
+flags.DEFINE_integer('sup_per_batch', 33,
                      'Number of labeled samples per class per batch.')
 
-flags.DEFINE_integer('unsup_batch_size', 1,
+flags.DEFINE_integer('unsup_batch_size', 30,
                      'Number of unlabeled samples per batch.')
 
-flags.DEFINE_integer('eval_interval', 500,
+flags.DEFINE_integer('eval_interval', 100,
                      'Number of steps between evaluations.')
 
-flags.DEFINE_float('learning_rate', 1e-3, 'Initial learning rate.')
+flags.DEFINE_float('learning_rate', 1e-1, 'Initial learning rate.')
 
 flags.DEFINE_float('decay_factor', 0.33, 'Learning rate decay factor.')
 
@@ -59,7 +39,7 @@ flags.DEFINE_float('decay_steps', 5000,
 
 flags.DEFINE_float('visit_weight', 1.0, 'Weight for visit loss.')
 
-flags.DEFINE_integer('max_steps', 20000, 'Number of training steps.')
+flags.DEFINE_integer('max_steps', 1000, 'Number of training steps.')
 
 flags.DEFINE_string('logdir', '/tmp/semisup_mnist', 'Training log path.')
 
@@ -68,12 +48,15 @@ from tools import nhltb as nl
 NUM_LABELS = nl.NUM_LABELS
 IMAGE_SHAPE = nl.IMAGE_SHAPE
 
+import logging
+
 
 def main(_):
+  logging.getLogger().setLevel(logging.INFO)
   train_images, train_labels = nl.get_data('train')
-
-
-  # test_images, test_labels = mnist_tools.get_data('test')
+  test_images, test_labels = nl.get_data('test')
+  train_images / 255.
+  test_images / 255.
 
   # Sample labeled training subset.
   seed = FLAGS.sup_seed if FLAGS.sup_seed != -1 else None
@@ -96,7 +79,6 @@ def main(_):
 
 
     # Compute embeddings and logits.
-
     t_sup_emb = model.image_to_embedding(t_sup_images)
     t_unsup_emb = model.image_to_embedding(t_unsup_images)
     t_sup_logit = model.embedding_to_logit(t_sup_emb)
@@ -130,6 +112,7 @@ def main(_):
       if (step + 1) % FLAGS.eval_interval == 0 or step == 99:
         print('Step: %d' % step)
         test_pred = model.classify(test_images).argmax(-1)
+        print(test_pred)
         conf_mtx = semisup.confusion_matrix(test_labels, test_pred, NUM_LABELS)
         test_err = (test_labels != test_pred).mean() * 100
         print(conf_mtx)
@@ -147,6 +130,7 @@ def main(_):
 
     coord.request_stop()
     coord.join(threads)
+    print('[INFO]    Training complete')
 
 
 if __name__ == '__main__':

@@ -214,7 +214,7 @@ def nhltb_model(inputs,
             [slim.conv2d, slim.fully_connected],
             activation_fn=tf.nn.elu,
             weights_regularizer=slim.l2_regularizer(l2_weight)):
-        print(net)
+        
         net = slim.conv2d(net, 32, [3, 3], scope='conv1_1')
         print(net)
         net = slim.conv2d(net, 32, [3, 3], scope='conv1_2')
