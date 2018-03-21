@@ -24,13 +24,13 @@ flags.DEFINE_integer('sup_seed', 1,
 flags.DEFINE_integer('sup_per_batch', 33,
                      'Number of labeled samples per class per batch.')
 
-flags.DEFINE_integer('unsup_batch_size', 30,
+flags.DEFINE_integer('unsup_batch_size', 100,
                      'Number of unlabeled samples per batch.')
 
-flags.DEFINE_integer('eval_interval', 100,
+flags.DEFINE_integer('eval_interval', 1,
                      'Number of steps between evaluations.')
 
-flags.DEFINE_float('learning_rate', 1e-1, 'Initial learning rate.')
+flags.DEFINE_float('learning_rate', 1e-4, 'Initial learning rate.')
 
 flags.DEFINE_float('decay_factor', 0.33, 'Learning rate decay factor.')
 
@@ -39,9 +39,9 @@ flags.DEFINE_float('decay_steps', 5000,
 
 flags.DEFINE_float('visit_weight', 1.0, 'Weight for visit loss.')
 
-flags.DEFINE_integer('max_steps', 1000, 'Number of training steps.')
+flags.DEFINE_integer('max_steps', 100, 'Number of training steps.')
 
-flags.DEFINE_string('logdir', '/tmp/semisup_mnist', 'Training log path.')
+flags.DEFINE_string('logdir', '/tmp/semisup_nhltb', 'Training log path.')
 
 from tools import nhltb as nl
 
@@ -53,8 +53,8 @@ import logging
 
 def main(_):
   logging.getLogger().setLevel(logging.INFO)
-  train_images, train_labels = nl.get_data('train')
-  test_images, test_labels = nl.get_data('test')
+  train_images, train_labels, unsup = nl.get_data('train')
+  test_images, test_labels, _ = nl.get_data('test')
   train_images / 255.
   test_images / 255.
 
@@ -69,19 +69,29 @@ def main(_):
     model = semisup.SemisupModel(semisup.architectures.nhltb_model, NUM_LABELS,
                                  IMAGE_SHAPE)
 
-    # Set up inputs.
-    t_unsup_images, _ = semisup.create_input(train_images, train_labels,
+
+    print('[INFO]    Creating sup images...')
+    t_sup_images, t_sup_labels  = semisup.create_input(train_images, train_labels,
+                                         FLAGS.sup_per_batch)
+
+    print('[INFO]    Creating unsup images...')
+    t_unsup_images = semisup.create_input(unsup, None,
                                              FLAGS.unsup_batch_size)
 
-
-    t_sup_images, t_sup_labels = semisup.create_per_class_inputs(
-        sup_by_label, FLAGS.sup_per_batch)
+    # # Set up inputs.
+    # t_unsup_images, _ = semisup.create_input(train_images, None,
+    #                                          FLAGS.unsup_batch_size)
+    #
+    #
+    # t_sup_images, t_sup_labels = semisup.create_per_class_inputs(
+    #     sup_by_label, FLAGS.sup_per_batch)
 
 
     # Compute embeddings and logits.
     t_sup_emb = model.image_to_embedding(t_sup_images)
     t_unsup_emb = model.image_to_embedding(t_unsup_images)
     t_sup_logit = model.embedding_to_logit(t_sup_emb)
+
 
     # Add losses.
     model.add_semisup_loss(
