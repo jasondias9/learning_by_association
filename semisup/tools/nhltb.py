@@ -25,7 +25,7 @@ def get_data(name):
 
 
 def load_data(root, partition):
-    print(os.walk(DATADIR+partition))
+    print(DATADIR)
     dirs = next(os.walk(DATADIR+partition))[1]
     print(dirs)
     X = []
