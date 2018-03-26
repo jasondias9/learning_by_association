@@ -25,14 +25,12 @@ def get_data(name):
 
 
 def load_data(root, partition):
-    print(DATADIR)
-    dirs = next(os.walk(DATADIR+partition))[1]
-    print(dirs)
+    dirs = next(os.walk(root+partition))[1]
     X = []
     Y = []
     unlab = []
     for lab in dirs:
-        curr = DATADIR + partition + '/' + lab
+        curr = root + partition + '/' + lab
 
         for f in os.listdir(curr):
             if f.endswith('.jpeg') and int(lab) > -1:
