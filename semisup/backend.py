@@ -179,7 +179,11 @@ class SemisupModel(object):
     p_aba = tf.matmul(p_ab, p_ba, name='p_aba')
 
     self.create_walk_statistics(p_aba, equality_matrix)
-
+    print(a)
+    print(a.shape)
+    print(b)
+    print(b.shape)
+    print(labels)
     loss_aba = tf.losses.softmax_cross_entropy(
         p_target,
         tf.log(1e-8 + p_aba),

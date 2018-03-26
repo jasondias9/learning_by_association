@@ -1,19 +1,5 @@
 #! /usr/bin/env python
-"""
-Copyright 2016 Google Inc.
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-    http://www.apache.org/licenses/LICENSE-2.0
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-Association-based semi-supervised training example in MNIST dataset.
-Training should reach ~1% error rate on the test set using 100 labeled samples
-in 5000-10000 steps (a few minutes on Titan X GPU)
-"""
+
 
 from __future__ import absolute_import
 from __future__ import division
@@ -21,9 +7,13 @@ from __future__ import print_function
 
 import tensorflow as tf
 import semisup
+import sys
+import numpy as np
 
 from tensorflow.python.platform import app
 from tensorflow.python.platform import flags
+
+from sklearn.model_selection import train_test_split
 
 FLAGS = flags.FLAGS
 
@@ -36,7 +26,7 @@ flags.DEFINE_integer('sup_seed', -1,
 flags.DEFINE_integer('sup_per_batch', 10,
                      'Number of labeled samples per class per batch.')
 
-flags.DEFINE_integer('unsup_batch_size', 100,
+flags.DEFINE_integer('unsup_batch_size', 10,
                      'Number of unlabeled samples per batch.')
 
 flags.DEFINE_integer('eval_interval', 1,
@@ -51,19 +41,31 @@ flags.DEFINE_float('decay_steps', 5000,
 
 flags.DEFINE_float('visit_weight', 1.0, 'Weight for visit loss.')
 
-flags.DEFINE_integer('max_steps', 20000, 'Number of training steps.')
+flags.DEFINE_integer('max_steps', 100, 'Number of training steps.')
 
-flags.DEFINE_string('logdir', '/tmp/semisup_mnist', 'Training log path.')
+flags.DEFINE_string('logdir', '/tmp/mod_mnist', 'Training log path.')
 
-from tools import mnist as mnist_tools
+NUM_LABELS = 10
+IMAGE_SHAPE = [64, 64, 1]
 
-NUM_LABELS = mnist_tools.NUM_LABELS
-IMAGE_SHAPE = mnist_tools.IMAGE_SHAPE
+import logging
 
 
 def main(_):
-  train_images, train_labels = mnist_tools.get_data('train')
-  test_images, test_labels = mnist_tools.get_data('test')
+
+  print('[INFO]    reading training images...')
+  train_images = np.loadtxt("train_x.csv", delimiter=",")
+  train_images = np.array([[1 if x > 250 else 0 for x in y] for y in train_images])
+  train_images = train_images.reshape((train_images.shape[0], 64, 64, 1))
+  # print('[INFO]    reading unsupervised...')
+  # unsup = np.loadtxt("test_x_redu.csv", delimiter=",")
+  # unsup = np.array([[1 if x > 250 else 0 for x in y] for y in unsup])
+  # unsup = unsup.reshape((unsup.shape[0], 64, 64, 1))
+  print('[INFO]    reading labels...')
+  train_labels = np.loadtxt("train_y.csv", delimiter=",", dtype = 'uint8')
+
+  print('[INFO]    test/train split...')
+  train_images, test_images, train_labels, test_labels = train_test_split(train_images, train_labels, test_size = 0.2)
 
   # Sample labeled training subset.
   seed = FLAGS.sup_seed if FLAGS.sup_seed != -1 else None
