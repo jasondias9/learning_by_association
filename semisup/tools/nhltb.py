@@ -25,7 +25,7 @@ def get_data(name):
 
 
 def load_data(root, partition):
-
+    print(os.walk(DATADIR+partition))
     dirs = next(os.walk(DATADIR+partition))[1]
     print(dirs)
     X = []
@@ -33,7 +33,7 @@ def load_data(root, partition):
     unlab = []
     for lab in dirs:
         curr = DATADIR + partition + '/' + lab
-        print(curr)
+
         for f in os.listdir(curr):
             if f.endswith('.jpeg') and int(lab) > -1:
                 imgdata = np.asarray(cv2.resize(cv2.imread(curr+'/'+f), (WIDTH, HEIGHT)))
