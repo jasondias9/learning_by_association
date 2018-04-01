@@ -1,6 +1,6 @@
 import os
 import sys
-from . import data_dirs
+import data_dirs
 import cv2
 import numpy as np
 from tensorflow import convert_to_tensor
